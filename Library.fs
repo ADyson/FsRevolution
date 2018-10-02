@@ -1,7 +1,7 @@
 namespace RevolutionEngine
 
-open Types
     module Helpers =
+        open Types
         let logBids bids =
             ignore
             //bids
@@ -9,7 +9,7 @@ open Types
             //    printfn "Color %A Bids:" c
             //    printfn "%A" b)
 
-        let getBidWinner (bids : Bid list) =
+        let getBidWinner (bids : Bid []) =
             let bidScore = function
             | Force -> 100
             | Blackmail -> 10
@@ -17,8 +17,8 @@ open Types
             
             let scoredBids =
                 bids
-                |> List.map (fun b -> b.Player, b.Tokens |> List.fold (fun score t -> score + bidScore t) 0)
-                |> List.sortByDescending snd
+                |> Array.map (fun b -> b.Player, b.Tokens |> List.fold (fun score t -> score + bidScore t) 0)
+                |> Array.sortByDescending snd
             
             if scoredBids.Length > 1 && (scoredBids.[1] |> snd) = (scoredBids.[0] |> snd)
             then None 
@@ -84,7 +84,7 @@ open Types
         
         let isFull board location =
             getLocation board location
-            |> List.length = locationSize location
+            |> Array.length = locationSize location
 
         let locationScore = function
             | Plantation -> Majority, 35  
@@ -104,6 +104,7 @@ open Types
             | Gold -> 1
 
     module TurnResolvers =
+        open Types
         open Helpers
         open System.Collections.Generic
         
@@ -111,7 +112,7 @@ open Types
             match actions with 
             | Some (team, actions)->
                 actions
-                |> List.map (fun b -> PlayerAction (team, b)) 
+                |> List.map (fun b -> (team, b)) 
                 |> List.fold (fun init bid -> reducer init bid) state
             | _ -> state
 
@@ -122,7 +123,7 @@ open Types
                 | Some bids -> 
                     match getBidWinner bids with
                     | Some winner ->
-                        logWinner choice <| Some winner
+                        // logWinner choice <| Some winner
                         (winner, actions)
                         |> Some
                     | _ -> None 
@@ -189,10 +190,10 @@ open Types
                 | Some bids -> 
                     match getBidWinner bids with
                     | Some winner ->
-                        logWinner Spy <| Some winner
+                        // logWinner Spy <| Some winner
                         
                         let p = players.[winner]
-                        let c,l = p.Spy()
+                        let c,l = p.Spy(state)
                         
                         (winner, [Spy' (l,c)])
                         |> Some
@@ -200,22 +201,21 @@ open Types
                 | _ -> None
             doActions state reducer <| actions' state
 
-            
-
     module GameHandler =
+        open Types
         open Helpers
         open TurnResolvers
-        
+
         let addSupport players color support =
             players
-            |> List.map (fun p ->
+            |> Array.map (fun p ->
                 match p.Team with
                 | c when c = color -> { p with Support = p.Support + support}
                 | _ -> p )
 
         let addToken players color token =
             players
-            |> List.map (fun p ->
+            |> Array.map (fun p ->
                 match p.Team with
                 | c when c = color -> { p with Hand = p.Hand @ [token]}
                 | _ -> p )
@@ -224,16 +224,16 @@ open Types
             if not <| isFull board location
             then
                 match location with
-                | Plantation -> { board with Plantation = board.Plantation @ [color] }  
-                | Tavern -> { board with Tavern = board.Tavern @ [color] } 
-                | Cathedral -> { board with Cathedral = board.Cathedral @ [color] } 
-                | TownHall -> { board with TownHall = board.TownHall @ [color] } 
-                | Asylum -> { board with Asylum = board.Asylum @ [color] } 
-                | Jail -> { board with Jail = board.Jail @ [color] } 
-                | Fortress -> { board with Fortress = board.Fortress @ [color] } 
-                | Market -> { board with Market = board.Market @ [color] } 
-                | Harbor -> { board with Harbor = board.Harbor @ [color] } 
-                | Garden -> { board with Garden = board.Garden @ [color] } 
+                | Plantation -> { board with Plantation = board.Plantation |> Array.append [|color|] }  
+                | Tavern -> { board with Tavern = board.Tavern |> Array.append [|color|] } 
+                | Cathedral -> { board with Cathedral = board.Cathedral |> Array.append [|color|] } 
+                | TownHall -> { board with TownHall = board.TownHall |> Array.append [|color|] } 
+                | Asylum -> { board with Asylum = board.Asylum |> Array.append [|color|] } 
+                | Jail -> { board with Jail = board.Jail |> Array.append [|color|] } 
+                | Fortress -> { board with Fortress = board.Fortress |> Array.append [|color|] } 
+                | Market -> { board with Market = board.Market |> Array.append [|color|] } 
+                | Harbor -> { board with Harbor = board.Harbor |> Array.append [|color|] } 
+                | Garden -> { board with Garden = board.Garden |> Array.append [|color|] } 
             else
                 board    
 
@@ -259,15 +259,15 @@ open Types
                     | Some b ->
                         let curTokens = 
                             b
-                            |> List.tryFind (fun p -> p.Player = color)
+                            |> Array.tryFind (fun p -> p.Player = color)
                     
                         match curTokens with
                         | Some bid -> 
                             b
-                            |> List.map (fun b -> if b.Player = color then { bid with Tokens = tokens @ bid.Tokens } else b)
-                        | None -> b @ [{ Player = color; Tokens = tokens }]
+                            |> Array.map (fun b -> if b.Player = color then { bid with Tokens = tokens @ bid.Tokens } else b)
+                        | None -> b|> Array.append [|{ Player = color; Tokens = tokens }|]
 
-                    | _ -> [{ Player = color; Tokens = tokens }]
+                    | _ -> [|{ Player = color; Tokens = tokens }|]
 
                 setBids bidstate choice <| Some newBids
 
@@ -276,22 +276,22 @@ open Types
             
             let removeIndex =
                 influence 
-                |> List.findIndex (fun c -> c = otherColor)
+                |> Array.findIndex (fun c -> c = otherColor)
 
             let swap i x =
                 if i = removeIndex then color else x
 
             match location with
-            | Plantation -> { board with Plantation = board.Plantation |> List.mapi swap }  
-            | Tavern -> { board with Tavern = board.Tavern |> List.mapi swap } 
-            | Cathedral -> { board with Cathedral = board.Cathedral |> List.mapi swap } 
-            | TownHall -> { board with TownHall = board.TownHall |> List.mapi swap } 
-            | Asylum -> { board with Asylum = board.Asylum |> List.mapi swap } 
-            | Jail -> { board with Jail = board.Jail |> List.mapi swap } 
-            | Fortress -> { board with Fortress = board.Fortress |> List.mapi swap } 
-            | Market -> { board with Market = board.Market |> List.mapi swap } 
-            | Harbor -> { board with Harbor = board.Harbor |> List.mapi swap } 
-            | Garden -> { board with Garden = board.Garden |> List.mapi swap }    
+            | Plantation -> { board with Plantation = board.Plantation |> Array.mapi swap }  
+            | Tavern -> { board with Tavern = board.Tavern |> Array.mapi swap } 
+            | Cathedral -> { board with Cathedral = board.Cathedral |> Array.mapi swap } 
+            | TownHall -> { board with TownHall = board.TownHall |> Array.mapi swap } 
+            | Asylum -> { board with Asylum = board.Asylum |> Array.mapi swap } 
+            | Jail -> { board with Jail = board.Jail |> Array.mapi swap } 
+            | Fortress -> { board with Fortress = board.Fortress |> Array.mapi swap } 
+            | Market -> { board with Market = board.Market |> Array.mapi swap } 
+            | Harbor -> { board with Harbor = board.Harbor |> Array.mapi swap } 
+            | Garden -> { board with Garden = board.Garden |> Array.mapi swap }    
 
 
         let gameReducer (state : GameState) (action : PlayerAction) =
@@ -318,17 +318,17 @@ open Types
                     
                     let sorted =
                         list
-                        |> List.groupBy id
-                        |> List.map (fun c -> fst c, snd c |> List.length)
-                        |> List.sortByDescending snd
+                        |> Array.groupBy id
+                        |> Array.map (fun c -> fst c, snd c |> Array.length)
+                        |> Array.sortByDescending snd
 
-                    if sorted |> List.length = 1 then sorted.[0] |> fst |> Some                 
+                    if sorted |> Array.length = 1 then sorted.[0] |> fst |> Some                 
                     elif (sorted.[0] |> snd) <> (sorted.[1] |> snd) then sorted.[0] |> fst |> Some
                     else None
                 
                 let results = 
                     state.Players
-                    |> List.map (fun p -> p.Team, p.Support)
+                    |> Array.map (fun p -> p.Team, p.Support)
                     |> dict
 
                 //printfn "Support: %A" results
@@ -345,14 +345,14 @@ open Types
 
                 let handResults =
                     state.Players
-                    |> List.map (fun p -> p.Team, p.Hand |> List.map tokenValue |> List.fold (fun t s -> t + s) 0)
+                    |> Array.map (fun p -> p.Team, p.Hand |> List.map tokenValue |> List.fold (fun t s -> t + s) 0)
                     |> dict
 
                 //printfn "Hand: %A" handResults
                 
                 state.Players
-                |> List.map (fun p -> p.Team)
-                |> List.map (fun c -> c, results.[c] + handResults.[c] + (locationResults |> List.map (fun (l, col) -> match col with Some (team) when c = team -> locationScore l |> snd | _ -> 0) |> List.sum))
+                |> Array.map (fun p -> p.Team)
+                |> Array.map (fun c -> c, results.[c] + handResults.[c] + (locationResults |> List.map (fun (l, col) -> match col with Some (team) when c = team -> locationScore l |> snd | _ -> 0) |> List.sum))
             
             // Do these also have to be full
             let asylumFull = 
@@ -384,25 +384,25 @@ open Types
 
         let initState players = { 
             Board = inititialBoard; 
-            Players = players; 
+            Players = players
             Bids = initialBidState 
         }
 
-        let runGame (players : #IRevolutionPlayer list) =
+        let runGame (players : #IRevolutionPlayer []) =
            
             let playerState = 
                 players
-                |> List.mapi (fun i p -> { Team = getTeam i; Hand = initialHand; Support = 0 })
+                |> Array.mapi (fun i p -> { Team = getTeam i; Hand = initialHand; Support = 0 })
 
             let playerMap =
                 players
-                |> List.mapi (fun i p -> (getTeam i, p))
+                |> Array.mapi (fun i p -> (getTeam i, p))
                 |> dict
 
             let getHand state color =
                 let player = 
                     state.Players
-                    |> List.find (fun p -> p.Team = color)
+                    |> Array.find (fun p -> p.Team = color)
                 player.Hand
 
             let rec fillHand tokens = 
@@ -438,7 +438,7 @@ open Types
             let rec loop state counter =
                 let playerBids = 
                     playerMap
-                    |> Seq.map (fun p -> p.Key, p.Value.MakeBids <| getHand state p.Key )
+                    |> Seq.map (fun p -> p.Key, p.Value.MakeBids state (getHand state p.Key) )
 
                 logBids playerBids
 
@@ -450,7 +450,7 @@ open Types
                     |> Seq.concat
                 
                 let emptyHandsState =
-                    { state with Players = state.Players |> List.map (fun p -> { p with Hand = [] } )}
+                    { state with Players = state.Players |> Array.map (fun p -> { p with Hand = [] } )}
 
                 let postBidState = 
                     bidActions
@@ -460,7 +460,9 @@ open Types
                     resolveTurn postBidState playerMap
 
                 let fillHandsState =
-                    { resolveTurnState with Players = resolveTurnState.Players |> List.map (fun p -> { p with Hand = fillHand p.Hand } ); Bids = initialBidState }
+                    { resolveTurnState 
+                        with Players = resolveTurnState.Players 
+                            |> Array.map (fun p -> { p with Hand = fillHand p.Hand } ); Bids = initialBidState }
 
                 let endOfRoundState = fillHandsState
 

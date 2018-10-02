@@ -50,40 +50,40 @@ open System
     }
 
     type BidState = {
-        General: Bid list option;
-        Captain: Bid list option;
-        InnKeeper: Bid list option;
-        Magistrate: Bid list option;
-        Priest: Bid list option;
-        Aristocrat: Bid list option;
-        Merchant: Bid list option;
-        Printer: Bid list option;
-        Warden: Bid list option;
-        Spy: Bid list option;
-        Apothecary: Bid list option;
-        Heretic: Bid list option;
-        Governor: Bid list option;
-        Rogue: Bid list option;
-        Mercenary: Bid list option;
-        Anarchist: Bid list option;
+        General: Bid [] option;
+        Captain: Bid [] option;
+        InnKeeper: Bid [] option;
+        Magistrate: Bid [] option;
+        Priest: Bid [] option;
+        Aristocrat: Bid [] option;
+        Merchant: Bid [] option;
+        Printer: Bid [] option;
+        Warden: Bid [] option;
+        Spy: Bid [] option;
+        Apothecary: Bid [] option;
+        Heretic: Bid [] option;
+        Governor: Bid [] option;
+        Rogue: Bid [] option;
+        Mercenary: Bid [] option;
+        Anarchist: Bid [] option;
     }
 
     type BoardState = {
-        Plantation: Color list;
-        Tavern: Color list; 
-        Cathedral: Color list; 
-        TownHall: Color list; 
-        Garden: Color list; 
-        Asylum: Color list;
-        Jail: Color list; 
-        Fortress: Color list; 
-        Market: Color list; 
-        Harbor: Color list; 
+        Plantation: Color []
+        Tavern: Color []
+        Cathedral: Color [] 
+        TownHall: Color [] 
+        Garden: Color []
+        Asylum: Color []
+        Jail: Color []
+        Fortress: Color [] 
+        Market: Color []
+        Harbor: Color [] 
     }
 
     type GameState = {
         Board: BoardState;
-        Players: Player list;
+        Players: Player[];
         Bids : BidState;
     }
 
@@ -110,16 +110,16 @@ open System
     }
 
     let inititialBoard = {
-        Plantation = []
-        Tavern = []
-        Cathedral = []
-        TownHall = []
-        Garden = []
-        Asylum = []
-        Jail = []
-        Fortress = []
-        Market = []
-        Harbor = []
+        Plantation = [||]
+        Tavern = [||]
+        Cathedral = [||]
+        TownHall = [||]
+        Garden = [||]
+        Asylum = [||]
+        Jail = [||]
+        Fortress = [||]
+        Market = [||]
+        Harbor = [||]
     }
 
     let initialHand = [ Force; Blackmail; Gold; Gold; Gold; ]
@@ -142,7 +142,7 @@ open System
 
     type IRevolutionPlayer =
        // abstract method
-       abstract member MakeBids: seq<Token> -> seq<BidAction> 
+       abstract member MakeBids: GameState -> seq<Token> -> seq<BidAction> 
 
-       abstract member Spy: unit -> Color * BoardLocation
+       abstract member Spy: GameState -> Color * BoardLocation
         

@@ -17,7 +17,7 @@ scores.Add(Yellow, 0)
 scores.Add(Green, 0)
 scores.Add(Grey, 0)
 
-[1..20000]
+[1..200]
 |> List.iter (fun i ->
 
     //let p1 = new RandomPlayer(13) :> IRevolutionPlayer;
@@ -33,8 +33,8 @@ scores.Add(Grey, 0)
 
     let winner =
         results
-        |> List.sortByDescending (fun (_ , s) -> s)
-        |> List.head
+        |> Array.sortByDescending (fun (_ , s) -> s)
+        |> Array.head
         |> fst
 
     //printfn "%A" i

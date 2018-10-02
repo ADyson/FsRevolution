@@ -65,7 +65,7 @@ open Types
             bids
 
         interface IRevolutionPlayer with
-            member this.MakeBids tokens =
+            member __.MakeBids _ tokens =
                 let tkns = tokens |> Seq.toList
 
                 let (forceBids, remaining) = spendForce tkns
@@ -76,7 +76,7 @@ open Types
                 forceBids @ blackmailBids @ goldBids
                 |> List.toSeq
 
-            member this.Spy() =
+            member __.Spy state =
                 // Need to get the options or board state.
                 (Blue, Garden)
 

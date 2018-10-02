@@ -5,7 +5,7 @@ open Types
 
     type PrinterBot() =               
          interface IRevolutionPlayer with
-            member this.MakeBids tokens =
+            member __.MakeBids _ tokens =
                 let bids = 
                     tokens 
                     |> Seq.toList 
@@ -13,5 +13,5 @@ open Types
                 bids
                 |> List.toSeq
 
-            member this.Spy() =
+            member __.Spy _ =
                 failwith "PrinterBot only prints"
