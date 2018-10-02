@@ -29,7 +29,7 @@ scores.Add(Grey, 0)
     let p7 = new PrinterBot():> IRevolutionPlayer;
 
     let results =
-        GameHandler.runGame([p2; p3; p4; p5; p6; p7]);
+        GameHandler.runGame([|p2; p3; p4; p5; p6; p7|]);
 
     let winner =
         results
