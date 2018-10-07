@@ -1,7 +1,8 @@
-﻿namespace Players
+﻿namespace Revolution
 
 open System
 open Types
+open Player
 
     type PrinterBot() =               
          interface IRevolutionPlayer with

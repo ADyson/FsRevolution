@@ -1,7 +1,5 @@
 ﻿module Types
 
-open System
-
     type Color = Blue | Green | Red | Grey | Yellow | Black
 
     type Token = Force | Blackmail | Gold
@@ -140,9 +138,3 @@ open System
 
     type PlayerAction = Color * GameAction
 
-    type IRevolutionPlayer =
-       // abstract method
-       abstract member MakeBids: GameState -> seq<Token> -> seq<BidAction> 
-
-       abstract member Spy: GameState -> Color * BoardLocation
-        

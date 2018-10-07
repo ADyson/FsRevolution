@@ -1,7 +1,8 @@
-﻿namespace Players
+﻿namespace Revolution
 
 open System
 open Types
+open Revolution.Player
 
     type RandomPlayer(i) =
         let r = Random(i);
